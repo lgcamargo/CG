@@ -8,5 +8,9 @@ body {
 }
 
 canvas {
-    border: 1px solid black;
+
+        background-image: url('deserto_teste.jpg');
+        background-size: cover;  /* Faz a imagem cobrir toda a tela */
+        background-position: center;
+
 }

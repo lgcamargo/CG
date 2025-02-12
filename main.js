@@ -111,7 +111,7 @@ function main(){
       }
       cubePositionX = possiblePositionsX[currentIndex]; 
   });
-
+  let score = 0; // Variável para armazenar a pontuação
   let gameOver = false; // Variável para impedir repetição do alerta e recarregar a página
 
   function checkCollision(obstacle) {
@@ -127,7 +127,21 @@ function main(){
   
   function drawCube() {
       if (gameOver) return;
-      gl.clearColor(0.0, 0.0, 0.0, 1.0); // Define o fundo como preto
+      if (!gameOver){
+        score += 0.015 // Assim o jogo acaba com += 1 minuto
+      }
+
+          // Verifica se a pontuação atingiu 60
+    if (score >= 60) {
+      gameOver = true;
+      setTimeout(() => {
+          alert("Parabéns! Você venceu!");
+          location.reload(); // Recarrega a página para reiniciar o jogo
+      }, 100);
+      return;
+    }
+
+      gl.clearColor(0.0, 0.0, 0.0, 0.0); // Define o fundo como preto
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
       let P_ref = [0.0, 1, 1]; // Alinha a referência da câmera
@@ -152,13 +166,14 @@ function main(){
       ]);
   
       let floorColors = new Float32Array([
-          1.0, 1.0, 1.0, // Branco
-          1.0, 1.0, 1.0, // Branco
-          1.0, 1.0, 1.0, // Branco
-          1.0, 1.0, 1.0, // Branco
-          1.0, 1.0, 1.0, // Branco
-          1.0, 1.0, 1.0  // Branco
-      ]);
+        1.0, 0.55, 0.0,  // Laranja forte (Vértice 0)
+        1.0, 0.65, 0.31, // Laranja médio (Vértice 1)
+        0.96, 0.87, 0.70, // Areia clara (Vértice 2 - ponto de fuga)
+    
+        1.0, 0.55, 0.0,  // Laranja forte (Vértice 3)
+        1.0, 0.65, 0.31, // Laranja médio (Vértice 4)
+        0.96, 0.87, 0.70  // Areia clara (Vértice 5 - ponto de fuga)
+    ]);
   
       let floorPositionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, floorPositionBuffer);
@@ -206,19 +221,15 @@ function main(){
         if (checkCollision(obstacle)) {
           gameOver = true; // Impede que o alerta dispare novamente
           setTimeout(() => {
-              alert("Game Over!");
+              alert("Game Over! Score: " + Math.floor(score));
               location.reload(); // Agora o reload só ocorre depois do alerta
           }, 100); 
         }
 
         // Progressão do movimento: de 0 (longe) a 1 (perto)
         let progress = (obstacle.z + 50) / 50;  // De 0 (longe) a 1 (perto)
-
-
         obstacle.x = (progress * obstacle.targetX); // Começa no centro e vai para targetX
         
-
-    
         if (obstacle.z > 5) { // Se passou do jogador, remove e cria outro
             obstacles.splice(index, 1);
             createObstacle();
@@ -226,7 +237,6 @@ function main(){
           let minZ = -25;  // Distância inicial
           let maxZ = 0;    // Quando chega no jogador
           let scaleFactor = (obstacle.z - minZ) / (maxZ - minZ);
-          
     
             let obstacleMatrix = m4.identity();
             obstacleMatrix = m4.translate(obstacleMatrix, obstacle.x, 0, obstacle.z);
@@ -256,6 +266,12 @@ function main(){
         }
     });
 
+        // Exibe a pontuação na tela
+        const scoreElement = document.getElementById("score");
+        if (scoreElement) {
+            scoreElement.textContent = "Pontuação: " + Math.floor(score);
+        }
+    
       // Requisitar próximo quadro
       requestAnimationFrame(drawCube);
   }  
@@ -265,71 +281,164 @@ function main(){
   drawCube();
 }
 
-function setCubeVertices(){
+function setCubeVertices() {
   const vertexData = [
-    // Front
-    0.5, 0.5, 0.5,
-    0.5, -.5, 0.5,
-    -.5, 0.5, 0.5,
-    -.5, 0.5, 0.5,
-    0.5, -.5, 0.5,
-    -.5, -.5, 0.5,
+      // Cubo principal (rosto)
+      // Front face
+      0.5, 0.5, 0.5,
+      0.5, -0.5, 0.5,
+      -0.5, 0.5, 0.5,
+      -0.5, 0.5, 0.5,
+      0.5, -0.5, 0.5,
+      -0.5, -0.5, 0.5,
 
-    // Left
-    -.5, 0.5, 0.5,
-    -.5, -.5, 0.5,
-    -.5, 0.5, -.5,
-    -.5, 0.5, -.5,
-    -.5, -.5, 0.5,
-    -.5, -.5, -.5,
+      // Left face
+      -0.5, 0.5, 0.5,
+      -0.5, -0.5, 0.5,
+      -0.5, 0.5, -0.5,
+      -0.5, 0.5, -0.5,
+      -0.5, -0.5, 0.5,
+      -0.5, -0.5, -0.5,
 
-    // Back
-    -.5, 0.5, -.5,
-    -.5, -.5, -.5,
-    0.5, 0.5, -.5,
-    0.5, 0.5, -.5,
-    -.5, -.5, -.5,
-    0.5, -.5, -.5,
+      // Back face
+      -0.5, 0.5, -0.5,
+      -0.5, -0.5, -0.5,
+      0.5, 0.5, -0.5,
+      0.5, 0.5, -0.5,
+      -0.5, -0.5, -0.5,
+      0.5, -0.5, -0.5,
 
-    // Right
-    0.5, 0.5, -.5,
-    0.5, -.5, -.5,
-    0.5, 0.5, 0.5,
-    0.5, 0.5, 0.5,
-    0.5, -.5, 0.5,
-    0.5, -.5, -.5,
+      // Right face
+      0.5, 0.5, -0.5,
+      0.5, -0.5, -0.5,
+      0.5, 0.5, 0.5,
+      0.5, 0.5, 0.5,
+      0.5, -0.5, 0.5,
+      0.5, -0.5, -0.5,
 
-    // Top
-    0.5, 0.5, 0.5,
-    0.5, 0.5, -.5,
-    -.5, 0.5, 0.5,
-    -.5, 0.5, 0.5,
-    0.5, 0.5, -.5,
-    -.5, 0.5, -.5,
+      // Top face
+      0.5, 0.5, 0.5,
+      0.5, 0.5, -0.5,
+      -0.5, 0.5, 0.5,
+      -0.5, 0.5, 0.5,
+      0.5, 0.5, -0.5,
+      -0.5, 0.5, -0.5,
 
-    // Bottom
-    0.5, -.5, 0.5,
-    0.5, -.5, -.5,
-    -.5, -.5, 0.5,
-    -.5, -.5, 0.5,
-    0.5, -.5, -.5,
-    -.5, -.5, -.5,
+      // Bottom face
+      0.5, -0.5, 0.5,
+      0.5, -0.5, -0.5,
+      -0.5, -0.5, 0.5,
+      -0.5, -0.5, 0.5,
+      0.5, -0.5, -0.5,
+      -0.5, -0.5, -0.5,
+
+      // Olho esquerdo (um pequeno cubo)
+      -0.3, 0.3, 0.51,
+      -0.1, 0.3, 0.51,
+      -0.3, 0.1, 0.51,
+      -0.3, 0.1, 0.51,
+      -0.1, 0.3, 0.51,
+      -0.1, 0.1, 0.51,
+
+      // Olho direito (um pequeno cubo)
+      0.1, 0.3, 0.51,
+      0.3, 0.3, 0.51,
+      0.1, 0.1, 0.51,
+      0.1, 0.1, 0.51,
+      0.3, 0.3, 0.51,
+      0.3, 0.1, 0.51,
+
+      // Boca (um retângulo)
+      -0.3, -0.3, 0.51,
+      0.3, -0.3, 0.51,
+      -0.3, -0.5, 0.51,
+      -0.3, -0.5, 0.51,
+      0.3, -0.3, 0.51,
+      0.3, -0.5, 0.51,
+
+      // Nariz (um triângulo)
+      0.0, 0.0, 0.51,
+      -0.1, -0.2, 0.51,
+      0.1, -0.2, 0.51,
+
+      // Turbante (um retângulo curvado acima do cubo)
+        // Parte frontal do turbante
+        -0.6, 0.6, 0.5,
+         0.6, 0.6, 0.5,
+        -0.6, 0.5, 0.5,
+        -0.6, 0.5, 0.5,
+         0.6, 0.6, 0.5,
+         0.6, 0.5, 0.5,
+
+        // Parte traseira do turbante
+        -0.6, 0.6, -0.5,
+         0.6, 0.6, -0.5,
+        -0.6, 0.5, -0.5,
+        -0.6, 0.5, -0.5,
+         0.6, 0.6, -0.5,
+         0.6, 0.5, -0.5,
+
+        // Lado esquerdo do turbante
+        -0.6, 0.6, 0.5,
+        -0.6, 0.6, -0.5,
+        -0.6, 0.5, 0.5,
+        -0.6, 0.5, 0.5,
+        -0.6, 0.6, -0.5,
+        -0.6, 0.5, -0.5,
+
+        // Lado direito do turbante
+        0.6, 0.6, 0.5,
+        0.6, 0.6, -0.5,
+        0.6, 0.5, 0.5,
+        0.6, 0.5, 0.5,
+        0.6, 0.6, -0.5,
+        0.6, 0.5, -0.5,
+
+        // Topo do turbante
+        -0.6, 0.6, 0.5,
+         0.6, 0.6, 0.5,
+        -0.6, 0.6, -0.5,
+        -0.6, 0.6, -0.5,
+         0.6, 0.6, 0.5,
+         0.6, 0.6, -0.5,
+
   ];
   return vertexData;
 }
 
-function setCubeColors(){
-  function randomColor() {
-    return [Math.random(), Math.random(), Math.random()];
+function setCubeColors() {
+  const colorData = [];
+
+  // Cores para o cubo principal (rosto)
+  const faceColor = [1.0, 0.8, 0.6]; // Cor de pele
+  for (let i = 0; i < 36; i++) {
+      colorData.push(...faceColor);
   }
 
-  let colorData = [];
-  for (let face = 0; face < 6; face++) {
-    let faceColor = randomColor();
-    for (let vertex = 0; vertex < 6; vertex++) {
-        colorData.push(...faceColor);
-    }
+  // Cores para os olhos
+  const eyeColor = [0.0, 0.0, 0.0]; // Preto
+  for (let i = 0; i < 12; i++) {
+      colorData.push(...eyeColor);
   }
+
+  // Cores para a boca
+  const mouthColor = [1.0, 0.0, 0.0]; // Vermelho
+  for (let i = 0; i < 6; i++) {
+      colorData.push(...mouthColor);
+  }
+
+  // Cores para o nariz
+  const noseColor = [1.0, 0.5, 0.0]; // Laranja
+  for (let i = 0; i < 3; i++) {
+      colorData.push(...noseColor);
+  }
+  
+    // Cores para o turbante (azul, por exemplo)
+    const turbanColor = [0.0, 0.0, 1.0]; // Azul
+    for (let i = 0; i < 30; i++) { // 30 vértices para o turbante
+        colorData.push(...turbanColor);
+    }
+
   return colorData;
 }
 
