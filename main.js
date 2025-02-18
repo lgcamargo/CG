@@ -44,6 +44,8 @@ function main(){
   gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
 
+  let CAM_VIEW = 5.0;
+
   let obstacles = [];
 
     // Função para criar obstáculos (triângulos)
@@ -108,6 +110,9 @@ function main(){
           currentIndex--;
       } else if (event.key === 'ArrowRight' && currentIndex < possiblePositionsX.length - 1) {
           currentIndex++;
+      }
+      if (event.key === 'c' || event.key === 'C') {
+        CAM_VIEW = CAM_VIEW == 2.0 ? 5.0 : 2.0;
       }
       cubePositionX = possiblePositionsX[currentIndex]; 
   });
@@ -189,7 +194,7 @@ function main(){
   
       // Renderizar o chão fixo
       let floorMatrix = m4.identity(); // Chão sem movimentação
-      let viewingMatrix = set3dViewingMatrix([0.0, 1.5, 5.0], P_ref, V); // Posição da câmera
+      let viewingMatrix = set3dViewingMatrix([0.0, 1.5, CAM_VIEW], P_ref, V); // Posição da câmera
       let ortographicMatrix = ortographicProjection(xw_min, xw_max, yw_min, yw_max, z_near, z_far);
   
       let floorFinalMatrix = m4.multiply(ortographicMatrix, viewingMatrix);
